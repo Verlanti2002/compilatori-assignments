@@ -22,19 +22,28 @@ int strength_reduction2(int x) {
     return c + d + e;
 }
 
+int multi_instruction(int b) {
+    int a = b + 1;
+    int c = a - 1; // Dovrebbe diventare solo c = b
+    return c;
+}
+
 int main() {
     /* Algebraic Identity */
     int result = algebraic_identity(10);
     printf("Risultato: %d\n", result);
 
-    /* Strength Reduction MUL*/
+    /* Strength Reduction MUL */
     int x = 10;
     result = strength_reduction(x);
     printf("Risultato per x = %d: %d\n", x, result);
 
-    /* Strength Reduction MUL*/
-    x = 10;
+    /* Strength Reduction DIV */
     result = strength_reduction2(x);
+    printf("Risultato per x = %d: %d\n", x, result);
+
+    /* Multi Instruction */
+    result = multi_instruction(x);
     printf("Risultato per x = %d: %d\n", x, result);
 
     return 0;
