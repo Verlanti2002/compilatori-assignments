@@ -1,4 +1,4 @@
-; ModuleID = 'Test.c'
+; ModuleID = 'test/Test.ll'
 source_filename = "Test.c"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-pc-linux-gnu"
@@ -13,15 +13,13 @@ define dso_local i32 @algebraic_identity(i32 noundef %0) #0 {
   %4 = alloca i32, align 4
   store i32 %0, ptr %2, align 4
   %5 = load i32, ptr %2, align 4
-  %6 = add nsw i32 %5, 0
-  store i32 %6, ptr %3, align 4
-  %7 = load i32, ptr %2, align 4
-  %8 = mul nsw i32 %7, 1
-  store i32 %8, ptr %4, align 4
-  %9 = load i32, ptr %3, align 4
-  %10 = load i32, ptr %4, align 4
-  %11 = add nsw i32 %9, %10
-  ret i32 %11
+  store i32 %5, ptr %3, align 4
+  %6 = load i32, ptr %2, align 4
+  store i32 %6, ptr %4, align 4
+  %7 = load i32, ptr %3, align 4
+  %8 = load i32, ptr %4, align 4
+  %9 = add nsw i32 %7, %8
+  ret i32 %9
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
@@ -34,30 +32,33 @@ define dso_local i32 @strength_reduction(i32 noundef %0) #0 {
   %7 = alloca i32, align 4
   store i32 %0, ptr %2, align 4
   %8 = load i32, ptr %2, align 4
-  %9 = mul nsw i32 %8, 8
+  %9 = shl i32 %8, 3
   store i32 %9, ptr %3, align 4
   %10 = load i32, ptr %2, align 4
-  %11 = mul nsw i32 %10, 15
-  store i32 %11, ptr %4, align 4
-  %12 = load i32, ptr %2, align 4
-  %13 = mul nsw i32 %12, 17
-  store i32 %13, ptr %5, align 4
-  %14 = load i32, ptr %2, align 4
-  %15 = mul nsw i32 4, %14
-  store i32 %15, ptr %6, align 4
+  %11 = shl i32 %10, 4
+  %12 = sub i32 %11, %10
+  store i32 %12, ptr %4, align 4
+  %13 = load i32, ptr %2, align 4
+  %14 = shl i32 %13, 4
+  %15 = add i32 %14, %13
+  store i32 %15, ptr %5, align 4
   %16 = load i32, ptr %2, align 4
-  %17 = mul nsw i32 17, %16
-  store i32 %17, ptr %7, align 4
-  %18 = load i32, ptr %3, align 4
-  %19 = load i32, ptr %4, align 4
-  %20 = add nsw i32 %18, %19
-  %21 = load i32, ptr %5, align 4
-  %22 = add nsw i32 %20, %21
-  %23 = load i32, ptr %6, align 4
-  %24 = add nsw i32 %22, %23
-  %25 = load i32, ptr %7, align 4
-  %26 = add nsw i32 %24, %25
-  ret i32 %26
+  %17 = shl i32 %16, 2
+  store i32 %17, ptr %6, align 4
+  %18 = load i32, ptr %2, align 4
+  %19 = shl i32 %18, 4
+  %20 = add i32 %19, %18
+  store i32 %20, ptr %7, align 4
+  %21 = load i32, ptr %3, align 4
+  %22 = load i32, ptr %4, align 4
+  %23 = add nsw i32 %21, %22
+  %24 = load i32, ptr %5, align 4
+  %25 = add nsw i32 %23, %24
+  %26 = load i32, ptr %6, align 4
+  %27 = add nsw i32 %25, %26
+  %28 = load i32, ptr %7, align 4
+  %29 = add nsw i32 %27, %28
+  ret i32 %29
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
@@ -68,13 +69,13 @@ define dso_local i32 @strength_reduction2(i32 noundef %0) #0 {
   %5 = alloca i32, align 4
   store i32 %0, ptr %2, align 4
   %6 = load i32, ptr %2, align 4
-  %7 = sdiv i32 %6, 8
+  %7 = lshr i32 %6, 3
   store i32 %7, ptr %3, align 4
   %8 = load i32, ptr %2, align 4
   %9 = sdiv i32 %8, 10
   store i32 %9, ptr %4, align 4
   %10 = load i32, ptr %2, align 4
-  %11 = sdiv i32 %10, 16
+  %11 = lshr i32 %10, 4
   store i32 %11, ptr %5, align 4
   %12 = load i32, ptr %3, align 4
   %13 = load i32, ptr %4, align 4
