@@ -1,1 +1,3 @@
-build
+assignment1/build
+assignment1/test/Test.ll
+assignment1/test/TestOpt.ll
