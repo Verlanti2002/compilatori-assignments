@@ -14,7 +14,6 @@ struct LocalOptsPass: PassInfoMixin<LocalOptsPass> {
   // Main entry point, takes IR unit to run the pass on (&F) and the
   // corresponding pass manager (to be queried if need be)
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &) {
-
   	bool Transformed = runOnFunction(F);
   	return (Transformed ? PreservedAnalyses::none() : PreservedAnalyses::all());
   }
@@ -133,30 +132,72 @@ struct LocalOptsPass: PassInfoMixin<LocalOptsPass> {
               }
             }
     			}
-    		} else if (BO->getOpcode() == Instruction::SDiv) {
-            LHS = BO->getOperand(0);
-            RHS = BO->getOperand(1);
-          
-            if(auto *C = dyn_cast<ConstantInt>(RHS)) {
-              /* -- ALGEBRAIC IDENTITY (x / 1) -- */
-              if(C->getValue().isOne()) {
-                BO->replaceAllUsesWith(LHS);
-                BO->eraseFromParent();
-                Transformed = true;
-              /* -- STRENGTH REDUCTION DIV -- */
-              } else if(C->getValue().isPowerOf2()) {
-                Constant *ShiftCount = ConstantInt::get(C->getType(), C->getValue().exactLogBase2());
-                auto *ShiftRight = BinaryOperator::CreateLShr(LHS, ShiftCount);
-                ShiftRight->insertAfter(BO);
-                BO->replaceAllUsesWith(ShiftRight);
-                BO->eraseFromParent();
-                Transformed = true;
-              }
+    		}else if (BO->getOpcode() == Instruction::SDiv) {
+          LHS = BO->getOperand(0);
+          RHS = BO->getOperand(1);
+        
+          if(auto *C = dyn_cast<ConstantInt>(RHS)) {
+            /* -- ALGEBRAIC IDENTITY (x / 1) -- */
+            if(C->getValue().isOne()) {
+              BO->replaceAllUsesWith(LHS);
+              BO->eraseFromParent();
+              Transformed = true;
+            /* -- STRENGTH REDUCTION DIV -- */
+            } else if(C->getValue().isPowerOf2()) {
+              Constant *ShiftCount = ConstantInt::get(C->getType(), C->getValue().exactLogBase2());
+              auto *ShiftRight = BinaryOperator::CreateLShr(LHS, ShiftCount);
+              ShiftRight->insertAfter(BO);
+              BO->replaceAllUsesWith(ShiftRight);
+              BO->eraseFromParent();
+              Transformed = true;
             }
           }
-    	  }
-      }
+        }
+
+
+
+
+        /* -- MULTI INSTRUCTIONS -- */
+        if (!BO || BO->use_empty()) // Controllo necessario per saltare le istruzioni ottimizzate (eliminate)
+          continue;
       
+        // Stampa l'istruzione corrente che stai analizzando
+        errs() << "Analizzando l'istruzione BO: " << *BO << "\n";
+        
+        if (BO->getOpcode() != Instruction::Add && BO->getOpcode() != Instruction::Sub)
+          continue;
+
+        Instruction::BinaryOps oppositeOpcode = (BO->getOpcode() == Instruction::Add) ? Instruction::Sub : Instruction::Add;
+
+        errs() << "Numero di user per I: " << I.getNumUses() << "\n";
+        
+        for (auto UI = I.user_begin(); UI != I.user_end(); ++UI) { 
+          if (auto *casted = dyn_cast<Instruction>(*UI)){
+            Instruction *user_instruction = casted;
+
+            // Stampa il "user" che stai analizzando
+            errs() << "   User trovata: " << *user_instruction << "\n";
+
+            if(user_instruction->getOpcode() == oppositeOpcode)
+            {
+              errs() << "Trovata operazione opposta!\n";
+              if (BO->getOperand(1) != user_instruction->getOperand(1)){
+                errs() << "Operandi non corrispondono, salto l'istruzione.\n"; 
+                continue;
+              }
+
+              errs() << "MATCH TROVATO! Sostituiamo " << *user_instruction << " con " << *BO->getOperand(0) << "\n";
+              Value *originalValue = BO->getOperand(0);
+              user_instruction->replaceAllUsesWith(originalValue);
+              Transformed = true;
+              // Stampa di conferma della sostituzione
+              errs() << "    Istruzione modificata con successo.\n";
+            }
+          }
+        }
+      }
+    }
+
     return Transformed;
   }
 

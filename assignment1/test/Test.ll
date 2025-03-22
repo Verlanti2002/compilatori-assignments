@@ -6,7 +6,7 @@ target triple = "x86_64-pc-linux-gnu"
 @.str = private unnamed_addr constant [15 x i8] c"Risultato: %d\0A\00", align 1
 @.str.1 = private unnamed_addr constant [26 x i8] c"Risultato per x = %d: %d\0A\00", align 1
 
-; Function Attrs: noinline nounwind optnone uwtable
+; Function Attrs: noinline nounwind uwtable
 define dso_local i32 @algebraic_identity(i32 noundef %0) #0 {
   %2 = alloca i32, align 4
   %3 = alloca i32, align 4
@@ -24,7 +24,7 @@ define dso_local i32 @algebraic_identity(i32 noundef %0) #0 {
   ret i32 %11
 }
 
-; Function Attrs: noinline nounwind optnone uwtable
+; Function Attrs: noinline nounwind uwtable
 define dso_local i32 @strength_reduction(i32 noundef %0) #0 {
   %2 = alloca i32, align 4
   %3 = alloca i32, align 4
@@ -60,7 +60,7 @@ define dso_local i32 @strength_reduction(i32 noundef %0) #0 {
   ret i32 %26
 }
 
-; Function Attrs: noinline nounwind optnone uwtable
+; Function Attrs: noinline nounwind uwtable
 define dso_local i32 @strength_reduction2(i32 noundef %0) #0 {
   %2 = alloca i32, align 4
   %3 = alloca i32, align 4
@@ -84,7 +84,23 @@ define dso_local i32 @strength_reduction2(i32 noundef %0) #0 {
   ret i32 %16
 }
 
-; Function Attrs: noinline nounwind optnone uwtable
+; Function Attrs: noinline nounwind uwtable
+define dso_local i32 @multi_instruction(i32 noundef %0) #0 {
+  %2 = alloca i32, align 4
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  store i32 %0, ptr %2, align 4
+  %5 = load i32, ptr %2, align 4
+  %6 = add nsw i32 %5, 1
+  store i32 %6, ptr %3, align 4
+  %7 = load i32, ptr %3, align 4
+  %8 = sub nsw i32 %7, 1
+  store i32 %8, ptr %4, align 4
+  %9 = load i32, ptr %4, align 4
+  ret i32 %9
+}
+
+; Function Attrs: noinline nounwind uwtable
 define dso_local i32 @main() #0 {
   %1 = alloca i32, align 4
   %2 = alloca i32, align 4
@@ -101,19 +117,24 @@ define dso_local i32 @main() #0 {
   %9 = load i32, ptr %3, align 4
   %10 = load i32, ptr %2, align 4
   %11 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, i32 noundef %9, i32 noundef %10)
-  store i32 10, ptr %3, align 4
   %12 = load i32, ptr %3, align 4
   %13 = call i32 @strength_reduction2(i32 noundef %12)
   store i32 %13, ptr %2, align 4
   %14 = load i32, ptr %3, align 4
   %15 = load i32, ptr %2, align 4
   %16 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, i32 noundef %14, i32 noundef %15)
+  %17 = load i32, ptr %3, align 4
+  %18 = call i32 @multi_instruction(i32 noundef %17)
+  store i32 %18, ptr %2, align 4
+  %19 = load i32, ptr %3, align 4
+  %20 = load i32, ptr %2, align 4
+  %21 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, i32 noundef %19, i32 noundef %20)
   ret i32 0
 }
 
 declare i32 @printf(ptr noundef, ...) #1
 
-attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
+attributes #0 = { noinline nounwind uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 
 !llvm.module.flags = !{!0, !1, !2, !3, !4}
@@ -124,4 +145,4 @@ attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protect
 !2 = !{i32 7, !"PIE Level", i32 2}
 !3 = !{i32 7, !"uwtable", i32 2}
 !4 = !{i32 7, !"frame-pointer", i32 2}
-!5 = !{!"Debian clang version 19.1.4 (1~deb12u1)"}
+!5 = !{!"Debian clang version 19.1.7 (++20250114103228+cd708029e0b2-1~exp1~20250114103334.78)"}
