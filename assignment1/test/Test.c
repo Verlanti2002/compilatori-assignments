@@ -22,10 +22,12 @@ int strength_reduction2(int x) {
     return c + d + e;
 }
 
-int multi_instruction(int b) {
+int multi_instruction(int b, int e) {
     int a = b + 1;
     int c = a - 1; 
-    return c; // Dovrebbe ritornare direttamente b
+    int d = e - 1;
+    int f = d + 1;
+    return c + f; // Dovrebbe ritornare direttamente b ed e
 }
 
 int main() {
@@ -43,7 +45,7 @@ int main() {
     printf("Risultato per x = %d: %d\n", x, result);
 
     /* Multi Instruction */
-    result = multi_instruction(x);
+    result = multi_instruction(x, x);
     printf("Risultato per x = %d: %d\n", x, result);
 
     return 0;

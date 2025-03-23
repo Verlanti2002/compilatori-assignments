@@ -40,9 +40,11 @@ define dso_local i32 @strength_reduction2(i32 noundef %0) #0 {
 }
 
 ; Function Attrs: noinline nounwind uwtable
-define dso_local i32 @multi_instruction(i32 noundef %0) #0 {
-  %2 = add nsw i32 %0, 1
-  ret i32 %0
+define dso_local i32 @multi_instruction(i32 noundef %0, i32 noundef %1) #0 {
+  %3 = add nsw i32 %0, 1
+  %4 = sub nsw i32 %1, 1
+  %5 = add nsw i32 %0, %1
+  ret i32 %5
 }
 
 ; Function Attrs: noinline nounwind uwtable
@@ -53,7 +55,7 @@ define dso_local i32 @main() #0 {
   %4 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, i32 noundef 10, i32 noundef %3)
   %5 = call i32 @strength_reduction2(i32 noundef 10)
   %6 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, i32 noundef 10, i32 noundef %5)
-  %7 = call i32 @multi_instruction(i32 noundef 10)
+  %7 = call i32 @multi_instruction(i32 noundef 10, i32 noundef 10)
   %8 = call i32 (ptr, ...) @printf(ptr noundef @.str.1, i32 noundef 10, i32 noundef %7)
   ret i32 0
 }
@@ -71,4 +73,4 @@ attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protect
 !2 = !{i32 7, !"PIE Level", i32 2}
 !3 = !{i32 7, !"uwtable", i32 2}
 !4 = !{i32 7, !"frame-pointer", i32 2}
-!5 = !{!"Debian clang version 19.1.7 (++20250114103228+cd708029e0b2-1~exp1~20250114103334.78)"}
+!5 = !{!"Debian clang version 19.1.4 (1~deb12u1)"}
