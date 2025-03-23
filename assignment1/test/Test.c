@@ -24,8 +24,8 @@ int strength_reduction2(int x) {
 
 int multi_instruction(int b) {
     int a = b + 1;
-    int c = a - 1; // Dovrebbe diventare solo c = b
-    return c;
+    int c = a - 1; 
+    return c; // Dovrebbe ritornare direttamente b
 }
 
 int main() {

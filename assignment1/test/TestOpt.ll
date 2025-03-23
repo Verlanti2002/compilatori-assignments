@@ -16,12 +16,12 @@ define dso_local i32 @algebraic_identity(i32 noundef %0) #0 {
 define dso_local i32 @strength_reduction(i32 noundef %0) #0 {
   %2 = shl i32 %0, 3
   %3 = shl i32 %0, 4
-  %4 = sub i32 %3, %0
+  %4 = sub i32 %3, 15
   %5 = shl i32 %0, 4
-  %6 = add i32 %5, %0
+  %6 = add i32 %5, 17
   %7 = shl i32 %0, 2
   %8 = shl i32 %0, 4
-  %9 = add i32 %8, %0
+  %9 = add i32 %8, 17
   %10 = add nsw i32 %2, %4
   %11 = add nsw i32 %10, %6
   %12 = add nsw i32 %11, %7
@@ -42,7 +42,6 @@ define dso_local i32 @strength_reduction2(i32 noundef %0) #0 {
 ; Function Attrs: noinline nounwind uwtable
 define dso_local i32 @multi_instruction(i32 noundef %0) #0 {
   %2 = add nsw i32 %0, 1
-  %3 = sub nsw i32 %2, 1
   ret i32 %0
 }
 
