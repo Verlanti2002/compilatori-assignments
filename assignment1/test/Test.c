@@ -17,8 +17,8 @@ int strength_reduction(int x) {
 
 int strength_reduction2(int x) {
     int c = x / 8;  // Deve diventare x >> 3
-    int d = x / 10; // Deve rimanere x / 10
-    int e = x / 16; // Deve diventare x >> 4
+    int d = x / 15; // Deve diventare (x >> 4) - x
+    int e = x / 17; // Deve diventare (x >> 4) + x
     return c + d + e;
 }
 

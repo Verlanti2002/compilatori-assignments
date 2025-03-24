@@ -32,11 +32,13 @@ define dso_local i32 @strength_reduction(i32 noundef %0) #0 {
 ; Function Attrs: noinline nounwind uwtable
 define dso_local i32 @strength_reduction2(i32 noundef %0) #0 {
   %2 = lshr i32 %0, 3
-  %3 = sdiv i32 %0, 10
-  %4 = lshr i32 %0, 4
-  %5 = add nsw i32 %2, %3
-  %6 = add nsw i32 %5, %4
-  ret i32 %6
+  %3 = lshr i32 %0, 4
+  %4 = sub i32 %3, 15
+  %5 = lshr i32 %0, 4
+  %6 = add i32 %5, 17
+  %7 = add nsw i32 %2, %4
+  %8 = add nsw i32 %7, %6
+  ret i32 %8
 }
 
 ; Function Attrs: noinline nounwind uwtable

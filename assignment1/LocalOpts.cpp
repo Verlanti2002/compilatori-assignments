@@ -138,16 +138,38 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
         }
         else
         {
+          /* -- STRENGTH REDUCTION DIV -- */
           if(C->getValue().isOne()) 
             BO->replaceAllUsesWith(Var);
             
-          /* -- STRENGTH REDUCTION DIV -- */
           else if(C->getValue().isPowerOf2()) 
           {
-            Constant *ShiftCount = ConstantInt::get(C->getType(), C->getValue().exactLogBase2());
-            auto *ShiftRight = BinaryOperator::CreateLShr(Var, ShiftCount);
-            ShiftRight->insertAfter(BO);
-            BO->replaceAllUsesWith(ShiftRight);
+            auto *ShiftCount = ConstantInt::get(C->getType(), C->getValue().exactLogBase2());
+            auto *ShiftRightOp = BinaryOperator::CreateLShr(Var, ShiftCount);
+            ShiftRightOp->insertAfter(BO);
+            BO->replaceAllUsesWith(ShiftRightOp);
+          }
+          else if((C->getValue()-1).isPowerOf2())
+          {
+            Temp = C;
+            auto *ShiftCount = ConstantInt::get(C->getType(), (C->getValue()-1).exactLogBase2());
+            auto *ShiftRightOp = BinaryOperator::CreateLShr(Var, ShiftCount);
+            ShiftRightOp->insertAfter(BO);
+
+            auto *AdditionOp = BinaryOperator::CreateAdd(ShiftRightOp, Temp);
+            AdditionOp->insertAfter(ShiftRightOp);
+            BO->replaceAllUsesWith(AdditionOp);
+          }
+          else if((C->getValue()+1).isPowerOf2())
+          {
+            Temp = C;
+            auto *ShiftCount = ConstantInt::get(C->getType(), (C->getValue()+1).exactLogBase2());
+            auto *ShiftRightOp = BinaryOperator::CreateLShr(Var, ShiftCount);
+            ShiftRightOp->insertAfter(BO);
+
+            auto *SubtractOp = BinaryOperator::CreateSub(ShiftRightOp, Temp);
+            SubtractOp->insertAfter(ShiftRightOp);
+            BO->replaceAllUsesWith(SubtractOp);
           }
         }
       }

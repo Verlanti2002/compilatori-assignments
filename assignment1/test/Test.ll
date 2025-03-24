@@ -71,10 +71,10 @@ define dso_local i32 @strength_reduction2(i32 noundef %0) #0 {
   %7 = sdiv i32 %6, 8
   store i32 %7, ptr %3, align 4
   %8 = load i32, ptr %2, align 4
-  %9 = sdiv i32 %8, 10
+  %9 = sdiv i32 %8, 15
   store i32 %9, ptr %4, align 4
   %10 = load i32, ptr %2, align 4
-  %11 = sdiv i32 %10, 16
+  %11 = sdiv i32 %10, 17
   store i32 %11, ptr %5, align 4
   %12 = load i32, ptr %3, align 4
   %13 = load i32, ptr %4, align 4
