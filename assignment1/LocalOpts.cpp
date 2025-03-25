@@ -25,6 +25,11 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
     return Transformed ? PreservedAnalyses::none() : PreservedAnalyses::all();
   }
 
+  /* 
+    Funzione che estrae il valore costante e la variabile indipendente da un'operazione binaria.  
+    Se uno degli operandi è una costante intera, lo assegna a C (passaggio per riferimento) e assegna l'altro operando a Var.  
+    Restituisce true se un operando costante è stato trovato, altrimenti false.  
+  */
   bool getConstant(BinaryOperator *BO, ConstantInt *&C, Value *&Var)
   {
     if (auto *constant = dyn_cast<ConstantInt>(BO->getOperand(0))) 
@@ -38,12 +43,18 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
       Var = BO->getOperand(0);
     }
     else 
-    {
       return false;
-    }
+
     return true;
   }
 
+  /* 
+    Funzione che implementa il passo di ottimizzazione "Algebraic Identity" su un BasicBlock.
+    Identifica e semplifica operazioni binarie ridondanti, come:
+      - Addizioni con zero (x + 0)
+      - Moltiplicazioni per uno (x * 1)
+    Restituisce true dopo aver processato tutte le istruzioni nel blocco.
+  */
   bool algebraicIdentity(BasicBlock &B)
   {
     ConstantInt *C;
@@ -53,23 +64,20 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
     {
       Instruction &I = *It++;
 
-      /* Verifica se l'operazione è di tipo binario */
     	if(auto *BO = dyn_cast<BinaryOperator>(&I)) 
       {
-        /* Verifica se l'operazione binaria è un'addizione o una moltiplicazione */
         if(BO->getOpcode() != Instruction::Add && BO->getOpcode() != Instruction::Mul)
           continue;
 
         if(!getConstant(BO, C, Var))
           continue;
 
-        /* Se l'operazione è un'addizione...*/
         if(BO->getOpcode() == Instruction::Add) 
         {
           /* -- ALGEBRAIC IDENTITY (x + 0) -- */
           if(C->getValue().isZero()) 
           {
-            llvm::errs() << "Ottimizzazione applicata: " << *BO << " -> " << *Var << "\n";
+            // errs() << "Ottimizzazione applicata: " << *BO << " -> " << *Var << "\n";
             BO->replaceAllUsesWith(Var);
           }          
         }
@@ -77,7 +85,7 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
         {
           if(C->getValue().isOne()) 
           {
-            llvm::errs() << "Ottimizzazione applicata: " << *BO << " -> " << *Var << "\n";
+            // errs() << "Ottimizzazione applicata: " << *BO << " -> " << *Var << "\n";
             BO->replaceAllUsesWith(Var);
           } 
         }
@@ -86,6 +94,14 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
     return true;
   }
 
+  /*
+    Funzione che implementa il passo di ottimizzazione "Strength Reduction" a un BasicBlock.
+    Identifica moltiplicazioni e divisioni per costanti e le sostituisce con operazioni più efficienti quando possibile:
+      - Moltiplicazioni per potenze di due vengono sostituite con shift a sinistra.
+      - Divisioni per potenze di due vengono sostituite con shift a destra.
+      - Moltiplicazioni o divisioni per valori vicini a potenze di due vengono trasformate in combinazioni di shift e addizioni o sottrazioni.
+    Restituisce true dopo aver processato tutte le istruzioni nel blocco.
+  */
   bool strenghtReduction(BasicBlock &B)
   {
     ConstantInt *C;
@@ -178,6 +194,12 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
     return true;
   }
 
+  /*
+    Funzione che implementa il passo di ottimizzazione "Multi Instruction" per eliminare operazioni aritmetiche inverse consecutive in un BasicBlock.
+    Analizza le istruzioni alla ricerca di addizioni e sottrazioni che operano sulla stessa variabile con la stessa costante.
+    Se trova una coppia di operazioni inverse (es. addizione seguita da sottrazione della stessa costante), elimina l'operazione ridondante.
+    Restituisce true dopo aver processato tutte le istruzioni nel blocco.
+  */
   bool multiInstruction(BasicBlock &B)
   {
     ConstantInt *C;
@@ -196,42 +218,45 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
         if (!BO || BO->use_empty()) // Controllo necessario per saltare le istruzioni ottimizzate (eliminate)
           continue;
     
-        // Stampa l'istruzione corrente che stai analizzando
-        errs() << "Analizzando l'istruzione BO: " << *BO << "\n";
+        // errs() << "Analizzando l'istruzione BO: " << *BO << "\n";
       
         if (BO->getOpcode() != Instruction::Add && BO->getOpcode() != Instruction::Sub)
           continue;
 
         Instruction::BinaryOps oppositeOpcode = (BO->getOpcode() == Instruction::Add) ? Instruction::Sub : Instruction::Add;
 
-        errs() << "Numero di user per I: " << I.getNumUses() << "\n";
+        // errs() << "Numero di user per I: " << I.getNumUses() << "\n";
       
         for (auto UI = I.user_begin(); UI != I.user_end(); ++UI) { 
           if (auto *casted = dyn_cast<Instruction>(*UI)){
             Instruction *user_instruction = casted;
 
-            // Stampa il "user" che stai analizzando
-            errs() << "User trovata: " << *user_instruction << "\n";
+            // errs() << "User trovata: " << *user_instruction << "\n";
 
             if(user_instruction->getOpcode() == oppositeOpcode)
             {
               errs() << "Trovata operazione opposta!\n";
               if (C != user_instruction->getOperand(1)) 
-                //errs() << "Operandi non corrispondono, salto l'istruzione.\n";
+                // errs() << "Operandi non corrispondono, salto l'istruzione.\n";
                 continue; 
 
-              errs() << "MATCH TROVATO! Sostituiamo " << *user_instruction << " con " << Var << "\n";
+              // errs() << "MATCH TROVATO! Sostituiamo " << *user_instruction << " con " << Var << "\n";
               user_instruction->replaceAllUsesWith(Var);
-              // Stampa di conferma della sostituzione
-              errs() << "Istruzione modificata con successo.\n";
+              // errs() << "Istruzione modificata con successo.\n";
             }
           }
         }  
       }
     }
+
     return true;
   }
-    
+  
+  /*
+    Funzione che si occupa dell'eliminazione del codice morto (Dead Code Elimination) su un BasicBlock.
+    Questa ottimizzazione migliora l'efficienza del codice eliminando istruzioni inutili.
+    Restituisce true dopo aver processato tutte le istruzioni nel blocco.
+  */
   bool deadCodeElimination(BasicBlock &B){
 
     auto It = B.begin();
@@ -239,12 +264,10 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
     while(It != B.end()){
       Instruction &I = *It;
   
-      if ( (I.hasNUses(0)) && (I.isBinaryOp()) ){
+      if ((I.hasNUses(0)) && (I.isBinaryOp()))
         It = I.eraseFromParent();
-      }
-      else{
+      else
         It++;
-      }
     }
   
     return true;
@@ -254,23 +277,16 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
   {
     bool Transformed = false;
 
-    /* Iterates on BasicBlocks */
     for (auto Iter = F.begin(); Iter != F.end(); ++Iter) 
     {
       if (algebraicIdentity(*Iter)) 
-      {
         Transformed = true;
-      }
       if (strenghtReduction(*Iter)) 
-      {
         Transformed = true;
-      }
-      if (multiInstruction(*Iter)){
+      if (multiInstruction(*Iter))
         Transformed = true;
-      }
-      if (deadCodeElimination(*Iter)){
+      if (deadCodeElimination(*Iter))
         Transformed = true;
-      }
     }
 
     return Transformed;
