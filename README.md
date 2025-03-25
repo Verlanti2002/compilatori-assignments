@@ -1,6 +1,8 @@
-# Configurazione e Compilazione di un passo di ottimizzazione
+# Compilatori-Assignments
+Repository contenente la risoluzione degli Assignments del corso di Compilatori
 
-Questo documento fornisce istruzioni dettagliate per impostare l'ambiente e compilare i file sorgenti.
+## Configurazione dell'environment
+Installazione degli strumenti necessari per la compilazione ed esecuzione dei passi di ottimizzazione.
 
 ## Requisiti
 Prima di iniziare, assicurarsi di avere installato LLVM 19 e gli strumenti necessari.
