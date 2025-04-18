@@ -1,0 +1,9 @@
+/home/verlanti/Desktop/compilatori-assignments/assignment3/build/CMakeFiles/intrinsics_gen.dir
+/home/verlanti/Desktop/compilatori-assignments/assignment3/build/CMakeFiles/omp_gen.dir
+/home/verlanti/Desktop/compilatori-assignments/assignment3/build/CMakeFiles/acc_gen.dir
+/home/verlanti/Desktop/compilatori-assignments/assignment3/build/CMakeFiles/ARMTargetParserTableGen.dir
+/home/verlanti/Desktop/compilatori-assignments/assignment3/build/CMakeFiles/AArch64TargetParserTableGen.dir
+/home/verlanti/Desktop/compilatori-assignments/assignment3/build/CMakeFiles/RISCVTargetParserTableGen.dir
+/home/verlanti/Desktop/compilatori-assignments/assignment3/build/CMakeFiles/LoopOpts.dir
+/home/verlanti/Desktop/compilatori-assignments/assignment3/build/CMakeFiles/edit_cache.dir
+/home/verlanti/Desktop/compilatori-assignments/assignment3/build/CMakeFiles/rebuild_cache.dir
