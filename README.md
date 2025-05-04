@@ -64,12 +64,10 @@ Seguire questi passi per compilare:
 Se la compilazione ha successo, otterrai l'insieme di passi di ottimizzazione sotto forma di libreria (`libLocalOpts.so`).
 
 ## **Generazione del Codice LLVM IR**
-Posizionarsi all'interno della cartella `test` e utilizzare `clang` per generare l'LLVM IR del file di test (`Test.c`).
+Posizionarsi all'interno della cartella dell'assignment in analisi e utilizzare `clang` per generare l'LLVM IR del file di test (`Test.c`).
 
 ```sh
-cd ..
-cd test
-clang-19 -emit-llvm -S -Xclang -disable-O0-optnone -c Test.c -o Test.ll
+clang-19 -emit-llvm -S -O0 -Xclang -disable-O0-optnone -c test/Test.c -o test/Test.ll
 ```
 - L'opzione `-O0` disabilita le ottimizzazioni per ottenere un codice IR non ottimizzato.
 - L'opzione `-emit-llvm` permette di generare codice intermedio LLVM invece di un eseguibile nativo.
@@ -77,20 +75,6 @@ clang-19 -emit-llvm -S -Xclang -disable-O0-optnone -c Test.c -o Test.ll
 - `-Xclang  -disable-O0-optnone` Permette di generare il file `Test.ll` rimuovendo le operazioni superflue di `load` e `store`.
 - `-c` Compila il codice producendo un file intermedio.
 - `-o Test.ll` Specifica il nome dell'output.
-
-## **Applicazione delle Ottimizzazioni**
-Riposizionarsi nella cartella `assignement1` e utilizzare `opt` per applicare le ottimizzazioni definite nel progetto.
-
-```sh
-cd ..
-opt-19 -load-pass-plugin build/libLocalOpts.so -passes="module(mem2reg,local-opts)" -S test/Test.ll -o test/TestOpt.ll
-```
-- `load-pass-plugin build/libLocalOpts.so` Indica dove è definita la libreria contenente il passo di ottimizzazione realizzato.
-- `-passes` Specifica la pipeline di ottimizzazioni da applicare.
-- `mem2reg` Permette di generare il file `TestOpt.ll` rimuovendo le operazioni superflue di `load` e `store`.
-- `-S` indica che deve essere prodotto un file LLVM (.ll).
-
-Questo comando genera un nuovo file `TestOpt.ll` con le ottimizzazioni applicate.
 
 # **Autori**
 [![Alessandro Verlanti](https://img.shields.io/badge/GitHub-Verlanti2002-blue?logo=github)](https://github.com/Verlanti2002)

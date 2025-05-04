@@ -1,5 +1,3 @@
-
-
 # Assignment 1: 
 
 ## 1. Algebraic Identity Optimization
@@ -107,3 +105,15 @@ Analizzando il risultato di `TestOpt.ll` possiamo determinare che l'ottimizzazio
 - `%0` contiene la variabile `b`;
 - Il valore da restituire, ovvero `c` che corrisponde a `b` viene returnato effettivamente senza la necessità di un'ulteriore istruzione.
 
+## **Applicazione delle Ottimizzazioni**
+Posizionarsi nella cartella `assignement1` e utilizzare `opt` per applicare le ottimizzazioni definite nel progetto.
+
+```sh
+opt-19 -load-pass-plugin build/libLocalOpts.so -passes="module(mem2reg,local-opts)" -S test/Test.ll -o test/TestOpt.ll
+```
+- `load-pass-plugin build/libLocalOpts.so` Indica dove è definita la libreria contenente il passo di ottimizzazione realizzato.
+- `-passes` Specifica la pipeline di ottimizzazioni da applicare.
+- `mem2reg` Permette di generare il file `TestOpt.ll` rimuovendo le operazioni superflue di `load` e `store`.
+- `-S` indica che deve essere prodotto un file LLVM (.ll).
+
+Questo comando genera un nuovo file `TestOpt.ll` con le ottimizzazioni applicate.
