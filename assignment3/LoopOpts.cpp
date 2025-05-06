@@ -29,6 +29,8 @@ struct LoopOpts: PassInfoMixin<LoopOpts> {
   /* Check if an instruction I is Loop Invariant with respect to loop L */
   bool isLoopInvariant(Instruction &I, Loop &L, std::set<Instruction *> &MI) {
     for (auto &Op : I.operands()) {
+      if(isa<Constant>(Op)) continue;
+      
       if (Instruction *InstOp = dyn_cast<Instruction>(Op)) {
         if (L.contains(InstOp) && !MI.count(InstOp)) 
           return false;
