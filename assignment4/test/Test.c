@@ -1,28 +1,31 @@
 #include <stdio.h>
 
-const int N = 100;
+const int N = 10;
 
-void loop_fusion(int *a, int *b, int *c) {
-    // Primo ciclo: inizializza a[]
-    for (int i = 0; i < N; ++i) {
-        a[i] = b[i] + 1;
-    }
+void loop_fusion1(int A[], int B[]) {
+    for(int i=0; i<N; i++)
+        A[i] = i + 1;
 
-    // Secondo ciclo: inizializza c[] usando a[]
-    for (int i = 0; i < N; ++i) {
-        c[i] = a[i] * 2;
-    }
+    for(int i=0; i<N; i++)
+        B[i] = A[i];
 }
 
-int main() {
-    int a[N], b[N], c[N];
+void loop_fusion2(int A[], int B[]) {
+    for (int i=0; i<N; i++)
+        A[i] = i + 1;
+        
+    for (int i=0; i<N; i++)
+        B[i] = A[i+3] + i;
+}
 
-    // Inizializza b[]
-    for (int i = 0; i < N; ++i) {
-        b[i] = i;
-    }
+void loop_fusion3(int A[], int B[], int C[], int D[]) {
 
-    loop_fusion(a, b, c);
-    
-    return 0;
+	for (int i=0; i<N; i++)
+	    A[i] = B[i] * C[i];
+
+	for (int i=0; i<N; i++)
+		D[i] = A[i] + C[i];
+
+	for (int i=0; i<N; i++)
+		A[i] = C[i] - 1;
 }
