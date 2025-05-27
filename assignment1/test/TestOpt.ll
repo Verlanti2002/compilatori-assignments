@@ -1,5 +1,5 @@
 ; ModuleID = 'test/Test.ll'
-source_filename = "Test.c"
+source_filename = "test/Test.c"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-pc-linux-gnu"
 
@@ -16,12 +16,12 @@ define dso_local i32 @algebraic_identity(i32 noundef %0) #0 {
 define dso_local i32 @strength_reduction(i32 noundef %0) #0 {
   %2 = shl i32 %0, 3
   %3 = shl i32 %0, 4
-  %4 = sub i32 %3, 15
+  %4 = sub i32 %3, %0
   %5 = shl i32 %0, 4
-  %6 = add i32 %5, 17
+  %6 = add i32 %5, %0
   %7 = shl i32 %0, 2
   %8 = shl i32 %0, 4
-  %9 = add i32 %8, 17
+  %9 = add i32 %8, %0
   %10 = add nsw i32 %2, %4
   %11 = add nsw i32 %10, %6
   %12 = add nsw i32 %11, %7
@@ -33,9 +33,9 @@ define dso_local i32 @strength_reduction(i32 noundef %0) #0 {
 define dso_local i32 @strength_reduction2(i32 noundef %0) #0 {
   %2 = lshr i32 %0, 3
   %3 = lshr i32 %0, 4
-  %4 = sub i32 %3, 15
+  %4 = sub i32 %3, %0
   %5 = lshr i32 %0, 4
-  %6 = add i32 %5, 17
+  %6 = add i32 %5, %0
   %7 = add nsw i32 %2, %4
   %8 = add nsw i32 %7, %6
   ret i32 %8

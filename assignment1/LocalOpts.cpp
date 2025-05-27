@@ -106,7 +106,6 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
   {
     ConstantInt *C;
 	  Value *Var;
-    Value *Temp;
 
     for(auto It = B.begin(); It != B.end(); ) 
     {
@@ -115,12 +114,12 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
       if(auto *BO = dyn_cast<BinaryOperator>(&I))
       {
         if(!getConstant(BO, C, Var))
-        continue;
+          continue;
 
         if (BO->getOpcode() != Instruction::Mul && BO->getOpcode() != Instruction::SDiv)
           continue;
 
-        if(BO->getOpcode() == Instruction::Mul )
+        if(BO->getOpcode() == Instruction::Mul)
         {
           if(C->getValue().isPowerOf2())
           {
@@ -131,23 +130,21 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
           }
           else if((C->getValue()-1).isPowerOf2()) 
           {
-            Temp = C;
             auto *ShiftCount = ConstantInt::get(C->getType(), (C->getValue()-1).exactLogBase2());
             auto *ShiftLeftOp = BinaryOperator::CreateShl(Var, ShiftCount);
             ShiftLeftOp->insertAfter(BO);
   
-            auto *AdditionOp = BinaryOperator::CreateAdd(ShiftLeftOp, Temp);
+            auto *AdditionOp = BinaryOperator::CreateAdd(ShiftLeftOp, Var);
             AdditionOp->insertAfter(ShiftLeftOp);
             BO->replaceAllUsesWith(AdditionOp);
           }
           else if((C->getValue()+1).isPowerOf2()) 
           {
-            Temp = C;
             auto *ShiftCount = ConstantInt::get(C->getType(), (C->getValue()+1).exactLogBase2());
             auto *ShiftLeftOp = BinaryOperator::CreateShl(Var, ShiftCount); 
             ShiftLeftOp->insertAfter(BO);
           
-            auto *SubtractOp = BinaryOperator::CreateSub(ShiftLeftOp, Temp);
+            auto *SubtractOp = BinaryOperator::CreateSub(ShiftLeftOp, Var);
             SubtractOp->insertAfter(ShiftLeftOp);
             BO->replaceAllUsesWith(SubtractOp);
           }
@@ -167,23 +164,21 @@ struct LocalOptsModulePass: PassInfoMixin<LocalOptsModulePass>
           }
           else if((C->getValue()-1).isPowerOf2())
           {
-            Temp = C;
             auto *ShiftCount = ConstantInt::get(C->getType(), (C->getValue()-1).exactLogBase2());
             auto *ShiftRightOp = BinaryOperator::CreateLShr(Var, ShiftCount);
             ShiftRightOp->insertAfter(BO);
 
-            auto *AdditionOp = BinaryOperator::CreateAdd(ShiftRightOp, Temp);
+            auto *AdditionOp = BinaryOperator::CreateAdd(ShiftRightOp, Var);
             AdditionOp->insertAfter(ShiftRightOp);
             BO->replaceAllUsesWith(AdditionOp);
           }
           else if((C->getValue()+1).isPowerOf2())
           {
-            Temp = C;
             auto *ShiftCount = ConstantInt::get(C->getType(), (C->getValue()+1).exactLogBase2());
             auto *ShiftRightOp = BinaryOperator::CreateLShr(Var, ShiftCount);
             ShiftRightOp->insertAfter(BO);
 
-            auto *SubtractOp = BinaryOperator::CreateSub(ShiftRightOp, Temp);
+            auto *SubtractOp = BinaryOperator::CreateSub(ShiftRightOp, Var);
             SubtractOp->insertAfter(ShiftRightOp);
             BO->replaceAllUsesWith(SubtractOp);
           }
