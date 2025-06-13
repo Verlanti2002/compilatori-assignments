@@ -44,7 +44,7 @@ Determinare i valori di **GEN** e **KILL**, che saranno utilizzati nella **Itera
 | BB3 | b - a  | $$\emptyset$$ | x = b - a  |
 | BB4 | a - b  | b - a  | x = a - b  |
 | BB5 | b - a  | $$\emptyset$$ | y = b - a  |
-| BB6 | $$\emptyset$$ | $$\emptyset$$ | a = 0      |
+| BB6 | $$\emptyset$$ | a - b | a = 0      |
 | BB7 | a - b  | $$\emptyset$$ | x = a - b  |
 | BB8 | $$\emptyset$$ | $$\emptyset$$ | EXIT       |
 
@@ -57,9 +57,9 @@ Determinare i valori di **GEN** e **KILL**, che saranno utilizzati nella **Itera
 |EXIT|$$\emptyset$$||$$\emptyset$$|$$\emptyset$$|
 |BB4|U||$$\{a-b\} \cup \{\emptyset - \{b-a\}\} = \{a-b\}$$|$$IN[EXIT] =\emptyset$$|
 |BB3|U||$$\{b-a\} \cup \{\{a-b\} - \emptyset\} = \{a-b, b-a\}$$|$$IN[BB4] = \{a-b\}$$|
-|BB7|U||$$\{a-b\} U \{\emptyset - \emptyset\} = \{a-b\}$$ | $$IN[EXIT] = \emptyset$$|
-|BB6|U||$$\emptyset \cup \{\{a-b\} - \{a\}\} = \emptyset$$ | $$IN[BB7] = \{a-b\}$$|
-|BB5|U||$$\{b-a\} U \{\emptyset - \emptyset\} = \{b-a\}$$|$$IN[BB6] = \emptyset$$|
+|BB7|U||$$\{a-b\} \cup \{\emptyset - \emptyset\} = \{a-b\}$$ | $$IN[EXIT] = \emptyset$$|
+|BB6|U||$$\emptyset \cup \{\{a-b\} - \{a-b\}\} = \emptyset$$ | $$IN[BB7] = \{a-b\}$$|
+|BB5|U||$$\{b-a\} \cup \{\emptyset - \emptyset\} = \{b-a\}$$|$$IN[BB6] = \emptyset$$|
 |BB2|U||$$\emptyset \cup \{\{b-a\} - \emptyset\} = \{b-a\}$$|$$IN[BB3] \cap IN[BB5] = \{a-b, b-a\} \cap \{b-a\} = \{b-a\}$$|
 
 ---
