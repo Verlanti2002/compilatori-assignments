@@ -1,31 +1,69 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 const int N = 10;
 
-void loop_fusion1(int A[], int B[]) {
-    for(int i=0; i<N; i++)
-        A[i] = i + 1;
+void test_all_properties_ok() {
+    int a[N], b[N], c[N], d[N];
 
-    for(int i=0; i<N; i++)
-        B[i] = A[i];
+    for (int i = 0; i < N; ++i) {
+        c[i] = a[i] + b[i];
+    }
+
+    for (int i = 0; i < N; ++i) {
+        d[i] = c[i] * 2;
+    }
 }
 
-void loop_fusion2(int A[], int B[]) {
-    for (int i=0; i<N; i++)
-        A[i] = i + 1;
-        
-    for (int i=0; i<N; i++)
-        B[i] = A[i+3] + i;
+void test_not_adjacent() {
+    int a[N], b[N], c[N], d[N];
+
+    for (int i = 0; i < N; ++i) {
+        c[i] = a[i] + b[i];
+    }
+
+    printf("Separazione tra i loop\n");  // rompe l'adiacenza
+
+    for (int i = 0; i < N; ++i) {
+        d[i] = c[i] * 2;
+    }
 }
 
-void loop_fusion3(int A[], int B[], int C[], int D[]) {
+void test_control_flow_not_equivalent() {
+    int a[N], b[N];
+    bool flag = true;
 
-	for (int i=0; i<N; i++)
-	    A[i] = B[i] * C[i];
+    if(flag) {
+        for(int i = 0; i < N; i++) {
+            a[i] = i;
+        }
+    }
+    
+    for(int i = 0; i < N; i++) {
+        b[i] = a[i] * 2;
+    }
+}
 
-	for (int i=0; i<N; i++)
-		D[i] = A[i] + C[i];
+void test_different_trip_count() {
+    int a[N], b[N], c[N], d[N];
 
-	for (int i=0; i<N; i++)
-		A[i] = C[i] - 1;
+    for (int i = 0; i < N; ++i) {  // trip count N
+        c[i] = a[i] + b[i];
+    }
+
+    for (int i = 1; i < N; ++i) {  // trip count N - 10
+        d[i] = c[i] * 2;
+    }
+}
+
+void test_negative_dependence() {
+    int a[N], c[N];
+
+    for (int i = 0; i < N; ++i) {
+        c[i] = a[i];
+    }
+
+    for (int i = 0; i < N; ++i) {
+        c[i] = c[i+3] + 1;  // scrive in i-1: dipendenza negativa
+    }
 }

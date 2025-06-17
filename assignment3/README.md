@@ -14,19 +14,27 @@ Confrontiamo i file `Test.m2r.ll` (non ottimizzato) e `TestOpt.ll` (ottimizzato)
 define dso_local void @test() #0 {
   br label %1
 
-1:                                                ; preds = %6, %0
-  %.0 = phi i32 [ 0, %0 ], [ %5, %6 ]
+1:                                                ; preds = %9, %0
+  %.01 = phi i32 [ 0, %0 ], [ %8, %9 ]
+  %.0 = phi i32 [ undef, %0 ], [ %7, %9 ]
   %2 = add nsw i32 5, 10
-  %3 = add nsw i32 %2, %.0
-  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %3)
-  %5 = add nsw i32 %.0, 1
+  %3 = icmp sgt i32 %.01, 5
+  br i1 %3, label %4, label %6
+
+4:                                                ; preds = %1
+  %5 = add nsw i32 5, 10
   br label %6
 
-6:                                                ; preds = %1
-  %7 = icmp slt i32 %5, 10
-  br i1 %7, label %1, label %8, !llvm.loop !6
+6:                                                ; preds = %4, %1
+  %7 = add nsw i32 %.0, %.01
+  %8 = add nsw i32 %.01, 1
+  br label %9
 
-8:                                                ; preds = %6
+9:                                                ; preds = %6
+  %10 = icmp slt i32 %8, 10
+  br i1 %10, label %1, label %11, !llvm.loop !6
+
+11:                                               ; preds = %9
   ret void
 }
 ```
@@ -35,24 +43,31 @@ define dso_local void @test() #0 {
 ```llvm
 define dso_local void @test() #0 {
   %1 = add nsw i32 5, 10
-  br label %2
+  %2 = add nsw i32 5, 10
+  br label %3
 
-2:                                                ; preds = %6, %0
-  %.0 = phi i32 [ 0, %0 ], [ %5, %6 ]
-  %3 = add nsw i32 %1, %.0
-  %4 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %3)
-  %5 = add nsw i32 %.0, 1
+3:                                                ; preds = %9, %0
+  %.01 = phi i32 [ 0, %0 ], [ %8, %9 ]
+  %.0 = phi i32 [ undef, %0 ], [ %7, %9 ]
+  %4 = icmp sgt i32 %.01, 5
+  br i1 %4, label %5, label %6
+
+5:                                                ; preds = %3
   br label %6
 
-6:                                                ; preds = %2
-  %7 = icmp slt i32 %5, 10
-  br i1 %7, label %2, label %8, !llvm.loop !6
+6:                                                ; preds = %5, %3
+  %7 = add nsw i32 %.0, %.01
+  %8 = add nsw i32 %.01, 1
+  br label %9
 
-8:                                                ; preds = %6
+9:                                                ; preds = %6
+  %10 = icmp slt i32 %8, 10
+  br i1 %10, label %3, label %11, !llvm.loop !6
+
+11:                                               ; preds = %9
   ret void
 }
 ```
-Le operazioni invarianti sono state spostate correttamente.
 
 ### Conclusione
 La LICM Optimization ha spostato con successo le operazioni invarianti presenti nel loop, semplificando e ottimizzando il codice IR.
@@ -67,6 +82,10 @@ opt-19 -S -load-pass-plugin=build/libLoopOpts.so -passes=’loop-opts’ test/Te
 - `load-pass-plugin build/libLocalOpts.so` Indica dove è definita la libreria contenente il passo di ottimizzazione realizzato.
 - `-passes` Specifica la pipeline di ottimizzazioni da applicare.
 - `mem2reg` Permette di generare il file `Test.m2r.ll` rimuovendo le operazioni superflue di `load` e `store`.
+- `loop-simplify` Permette di portare i loop in una forma canonica:
+    - aggiunge un **preheader** al loop
+    - assicura che il **loop header** abbia un solo predecessore fuori dal loop
+    - rende il **latch** (blocco che torna al loop header) esplicito
 - `-S` indica che deve essere prodotto un file LLVM (.ll).
 
 Questi due comandi generano, il primo un file esente da operazioni superflue di `load` e `store` (non ottimizzato), il secondo invece il file `TestOpt.ll` con le ottimizzazioni applicate.

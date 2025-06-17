@@ -3,8 +3,6 @@ source_filename = "test/Test.c"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-pc-linux-gnu"
 
-@.str = private unnamed_addr constant [4 x i8] c"%d\0A\00", align 1
-
 ; Function Attrs: noinline nounwind uwtable
 define dso_local void @test() #0 {
   %1 = alloca i32, align 4
@@ -12,37 +10,47 @@ define dso_local void @test() #0 {
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
   %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
   store i32 5, ptr %1, align 4
   store i32 10, ptr %2, align 4
+  store i32 0, ptr %3, align 4
   store i32 0, ptr %4, align 4
-  br label %6
+  br label %7
 
-6:                                                ; preds = %17, %0
-  %7 = load i32, ptr %1, align 4
-  %8 = load i32, ptr %2, align 4
-  %9 = add nsw i32 %7, %8
-  store i32 %9, ptr %5, align 4
-  %10 = load i32, ptr %5, align 4
-  %11 = load i32, ptr %4, align 4
-  %12 = add nsw i32 %10, %11
-  store i32 %12, ptr %3, align 4
-  %13 = load i32, ptr %3, align 4
-  %14 = call i32 (ptr, ...) @printf(ptr noundef @.str, i32 noundef %13)
-  %15 = load i32, ptr %4, align 4
-  %16 = add nsw i32 %15, 1
+7:                                                ; preds = %23, %0
+  %8 = load i32, ptr %1, align 4
+  %9 = load i32, ptr %2, align 4
+  %10 = add nsw i32 %8, %9
+  store i32 %10, ptr %6, align 4
+  %11 = load i32, ptr %3, align 4
+  %12 = icmp sgt i32 %11, 5
+  br i1 %12, label %13, label %17
+
+13:                                               ; preds = %7
+  %14 = load i32, ptr %1, align 4
+  %15 = load i32, ptr %2, align 4
+  %16 = add nsw i32 %14, %15
   store i32 %16, ptr %4, align 4
   br label %17
 
-17:                                               ; preds = %6
-  %18 = load i32, ptr %4, align 4
-  %19 = icmp slt i32 %18, 10
-  br i1 %19, label %6, label %20, !llvm.loop !6
+17:                                               ; preds = %13, %7
+  %18 = load i32, ptr %5, align 4
+  %19 = load i32, ptr %3, align 4
+  %20 = add nsw i32 %18, %19
+  store i32 %20, ptr %5, align 4
+  %21 = load i32, ptr %3, align 4
+  %22 = add nsw i32 %21, 1
+  store i32 %22, ptr %3, align 4
+  br label %23
 
-20:                                               ; preds = %17
+23:                                               ; preds = %17
+  %24 = load i32, ptr %3, align 4
+  %25 = icmp slt i32 %24, 10
+  br i1 %25, label %7, label %26, !llvm.loop !6
+
+26:                                               ; preds = %23
   ret void
 }
-
-declare i32 @printf(ptr noundef, ...) #1
 
 ; Function Attrs: noinline nounwind uwtable
 define dso_local i32 @main() #0 {
@@ -51,7 +59,6 @@ define dso_local i32 @main() #0 {
 }
 
 attributes #0 = { noinline nounwind uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
-attributes #1 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cmov,+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 
 !llvm.module.flags = !{!0, !1, !2, !3, !4}
 !llvm.ident = !{!5}

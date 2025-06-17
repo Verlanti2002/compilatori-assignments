@@ -6,8 +6,11 @@
 #include "llvm/Analysis/LoopInfo.h"
 #include "llvm/IR/Dominators.h"
 #include "llvm/ADT/DepthFirstIterator.h"
+#include "llvm/ADT/Twine.h"
 
 using namespace llvm;
+
+const bool TEST = true;
 
 namespace {
 
@@ -32,11 +35,14 @@ struct LoopOpts: PassInfoMixin<LoopOpts> {
       if(isa<Constant>(Op)) continue;
       
       if (Instruction *InstOp = dyn_cast<Instruction>(Op)) {
-        if (L.contains(InstOp) && !MI.count(InstOp)) 
+        if (L.contains(InstOp) && !MI.count(InstOp)){
+          printLogs("Loop Variant Instruction!");
           return false;
+        }
       }
     }
 
+    printLogs("Loop Invariant Instruction!");
     return true;
   }
 
@@ -46,10 +52,13 @@ struct LoopOpts: PassInfoMixin<LoopOpts> {
     L.getExitBlocks(ExitBlocks);
 
     for(BasicBlock *ExitBB : ExitBlocks){
-      if(!DT.dominates(I.getParent(), ExitBB))
+      if(!DT.dominates(I.getParent(), ExitBB)){
+        printLogs("Does NOT Dominate All Loop Exits!");
         return false;
+      }
     }
 
+    printLogs("Dominate All Loop Exits!");
     return true;
   }
 
@@ -57,11 +66,14 @@ struct LoopOpts: PassInfoMixin<LoopOpts> {
   bool isSafeToMove(Loop &L, DominatorTree &DT, Instruction &I){
     for(User *U : I.users()){
       if(Instruction *UserI = dyn_cast<Instruction>(U)){
-        if(L.contains(UserI) && !DT.dominates(&I, UserI)) // Check if the user is in the loop and does not dominate the instruction (UserI executed before I) it's not safe to move
+        if(L.contains(UserI->getParent()) && !DT.dominates(I.getParent(), UserI->getParent())){ // Check if the user is in the loop and does not dominate the instruction (UserI executed before I) it's not safe to move
+          printLogs("NOT Safe To Move!");
           return false; 
+        }
       }
     }
     
+    printLogs("Safe To Move!");
     return true; 
   }
 
@@ -69,12 +81,30 @@ struct LoopOpts: PassInfoMixin<LoopOpts> {
   bool isDeadOutsideLoop(Loop &L, Instruction &I){
     for(User *U : I.users()){
       if(Instruction *UserI = dyn_cast<Instruction>(U)){
-        if(!L.contains(UserI->getParent())) // Check if the user's parent block is outside the loop
+        if(!L.contains(UserI->getParent())){ // Check if the user's parent block is outside the loop
+          printLogs("NOT Dead Outside Loop!");
           return false; // Found a use outside the loop: not dead outside
+        }
       }
     }
-
+    printLogs("Dead Outside Loop Instruction!");
     return true; // All uses are inside the loop: dead outside
+  }
+
+  void printInstruction(const llvm::Twine &msg, const Instruction *I){
+    if (TEST) {
+      std::string instrStr;
+      llvm::raw_string_ostream rso(instrStr);
+      I->print(rso);
+      rso.flush();
+
+      outs() << msg << instrStr << "\n";
+    }
+  }
+
+  void printLogs(const llvm::Twine &msg) {
+    if (TEST)
+      outs() << msg << "\n";
   }
 
   /* Main function to move loop-invariant instructions to the preheader of the loop */ 
@@ -82,7 +112,7 @@ struct LoopOpts: PassInfoMixin<LoopOpts> {
     bool Changed = false;
     std::set<Instruction *> MovedInstructions; // Set to track instructions that have already been moved
 
-    for (Loop *L : LI) {
+    for (Loop *L : LI.getLoopsInPreorder()) {
       if (!L->isLoopSimplifyForm() || !L->getLoopPreheader()) continue;
 
       BasicBlock *Preheader = L->getLoopPreheader();
@@ -94,7 +124,8 @@ struct LoopOpts: PassInfoMixin<LoopOpts> {
 
         for (BasicBlock *BB : L->blocks()) {
           for (Instruction &I : *BB) {
-            if (I.isTerminator() || isa<PHINode>(&I)) continue;
+            printInstruction("Instruction: ", &I);
+            if (I.isTerminator() || isa<PHINode>(&I) || I.mayReadOrWriteMemory() || I.mayHaveSideEffects()) continue;
 
             if (!isLoopInvariant(I, *L, MovedInstructions)) continue;
 
@@ -102,11 +133,13 @@ struct LoopOpts: PassInfoMixin<LoopOpts> {
 
             if (!isSafeToMove(*L, DT, I)) continue;
 
+            printLogs("LICM enabled: Added instruction to ToMove vector!");
             ToMove.push_back(&I);
           }
         }
 
         for (Instruction *I : ToMove) {
+          printInstruction("INSTRUCTION MOVED: ", I);
           I->moveBefore(Preheader->getTerminator()); // Move the instruction before the preheader terminator
           MovedInstructions.insert(I);
           Changed = LocalChange = true; // Set the flags to indicate a change
