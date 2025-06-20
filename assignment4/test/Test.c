@@ -64,6 +64,6 @@ void test_negative_dependence() {
     }
 
     for (int i = 0; i < N; ++i) {
-        c[i] = c[i+3] + 1;  // scrive in i-1: dipendenza negativa
+        c[i] = c[i+3] + 1;  // scrive in i+3: dipendenza negativa
     }
 }

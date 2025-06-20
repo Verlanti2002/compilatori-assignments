@@ -129,13 +129,13 @@ struct LoopFusionOpts: PassInfoMixin<LoopFusionOpts> {
 
         ConstantInt *Const = dyn_cast<ConstantInt>(RHS);
         if (!Const)
-            Const = dyn_cast<ConstantInt>(LHS);
+          Const = dyn_cast<ConstantInt>(LHS);
 
         if (Const) {
-            int64_t Offset = Const->getSExtValue();
-            if (Op->getOpcode() == Instruction::Sub && Const == RHS)
-                Offset = -Offset;
-            return Offset;
+          int64_t Offset = Const->getSExtValue();
+          if (Op->getOpcode() == Instruction::Sub && Const == RHS)
+            Offset = -Offset;
+          return Offset;
         }
       }
     }
@@ -150,15 +150,15 @@ struct LoopFusionOpts: PassInfoMixin<LoopFusionOpts> {
       for (BasicBlock *BB2 : L2->blocks()) {
         for (Instruction &I1 : *BB1) {
           // Consider only memory accesses (load and store are array accesses)
-          if (!isa<LoadInst>(&I1) && !isa<StoreInst>(&I1))
+          if (!isa<StoreInst>(&I1))
             continue;
 
           for (Instruction &I2 : *BB2) {
-            if (!isa<LoadInst>(&I2) && !isa<StoreInst>(&I2))
+            if (!isa<LoadInst>(&I2))
               continue;
 
             if (auto Dep = DI.depends(&I1, &I2, true)) { // checks if there is a data dependency between the two instructions
-              if(isDistanceNegative(Dep, I2, I1)){ // checks if it is a negative dependency
+              if(isDistanceNegative(Dep, I2, I1)) { // checks if it is a negative dependency
                 printLogs("Loop 1 and Loop 2 have Negative Distance Dependence!");
                 return true;
               }
